@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#fff8fb">
+  <title>Kitty Runner | Corrida felina</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="app-header">
+      <a class="brand" href="/" aria-label="Kitty Runner início">
+        <span class="brand-mark" aria-hidden="true">⌁</span>
+        <span><strong>Kitty Runner</strong><small>Feline arcade lab</small></span>
+      </a>
+      <div class="system-status"><span class="status-dot"></span><span>Jogo online</span><span class="status-divider"></span><span class="system-chip">ARCADE 01</span></div>
+    </header>
+
+    <div class="content-grid">
+      <main class="game-card">
+        <header class="game-heading">
+          <div>
+            <p class="eyebrow">DESAFIO DA SEMANA</p>
+            <h1>Corra. Pule. <em>Brilhe.</em></h1>
+            <p class="subtitle">Ajude a Kitty a atravessar cenários encantadores e supere seu recorde.</p>
+          </div>
+          <div class="heading-cat" aria-hidden="true">ฅ^•ﻌ•^ฅ</div>
+        </header>
+
+        <section class="hud" aria-label="Status da corrida">
+          <div class="hud-item"><span class="hud-icon">✦</span><span><small>Pontos</small><strong id="scoreValue">0</strong></span></div>
+          <div class="hud-item"><span class="hud-icon record-icon">↗</span><span><small>Recorde</small><strong id="bestValue">0</strong></span></div>
+          <div class="hud-item lives"><span class="hud-icon">♡</span><span><small>Vidas</small><strong id="livesValue" data-paw-src="{{ url_for('image_file', filename='vida.png') }}" aria-label="3 vidas"></strong></span></div><div class="hud-item phase-stat"><span class="hud-icon">◆</span><span><small>Fase</small><strong id="phaseValue">01</strong></span></div><div class="hud-item power-stat"><span class="hud-icon">✦</span><span><small>Power-up</small><strong id="powerupValue">—</strong></span></div>
+          <div class="hud-controls"><button class="icon-btn" id="pauseBtn" aria-label="Pausar" title="Pausar corrida">Ⅱ</button><button class="icon-btn" id="muteBtn" aria-label="Silenciar som" title="Alternar som">◖</button></div>
+        </section>
+
+        <div class="stage-wrap"><div class="stage-label"><span><span class="live-dot"></span> LIVE RUN</span><span>SPACE para pular · ↓ para abaixar</span></div><div class="phase-progress" aria-label="Progresso da fase" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="phaseProgressBar"></span></div>
+          <div class="stage"><div class="stage-badge" id="stageBadge">FASE 01 · PRADO</div><div class="powerup-badge hidden" id="powerupBadge" role="status"></div><div class="boss-badge hidden" id="bossBadge" role="status">CHEFE DA FASE</div><canvas id="game" width="800" height="360" tabindex="0" aria-label="Área de jogo Kitty Runner"></canvas>
+            <div class="overlay" id="startOverlay"><div class="overlay-card"><span class="overlay-kicker">NOVA CORRIDA</span><img class="kitty-gif" src="{{ url_for('image_file', filename='1553283_powpink_hello-kitty-walk.gif') }}" alt="Kitty pronta para correr"><h2>Pronta para decolar?</h2><p>Use <kbd>Espaço</kbd> para pular duas vezes e <kbd>↓</kbd> para desviar das abelhinhas.</p><button class="btn btn-primary" id="startBtn">Começar a correr <span>→</span></button></div></div>
+            <div class="overlay hidden" id="countdownOverlay"><div class="countdown-number" id="countdownValue">3</div></div>
+            <div class="overlay hidden" id="pauseOverlay"><div class="overlay-card"><div class="mascot-badge">Ⅱ</div><span class="overlay-kicker">CORRIDA PAUSADA</span><h2>Respire fundo.</h2><p>A pista continua esperando por você.</p><button class="btn btn-primary" id="resumeBtn">Continuar <span>→</span></button></div></div>
+            <div class="overlay hidden" id="phaseCompleteOverlay"><div class="overlay-card"><span class="overlay-kicker">FASE CONCLUÍDA</span><div class="victory-emblem">★</div><h2 id="phaseCompleteTitle">Fase concluída!</h2><p>Você superou o desafio e derrotou o chefe.</p><div class="phase-result"><span>Pontuação</span><strong id="phaseCompleteScore">0</strong></div><button class="btn btn-primary" id="nextPhaseBtn">Próxima fase <span>→</span></button><button class="btn btn-ghost" id="replayPhaseBtn">Repetir fase</button><button class="btn btn-ghost" id="infiniteModeBtn">Modo infinito</button></div></div><div class="overlay hidden" id="gameOverOverlay"><div class="overlay-card"><span class="overlay-kicker">FIM DE CORRIDA</span><img class="kitty-gif sad" src="{{ url_for('image_file', filename='1553283_powpink_hello-kitty-walk.gif') }}" alt="Kitty terminou a corrida"><h2>Quase lá!</h2><p>Seu resultado foi <strong id="finalScore">0</strong> pontos.</p><form id="scoreForm"><label for="playerName">Salvar no ranking</label><input type="text" id="playerName" maxlength="20" placeholder="Seu nome ou apelido" autocomplete="off"><button type="submit" class="btn btn-primary">Salvar pontuação <span>→</span></button></form><button class="btn btn-ghost" id="retryBtn">Tentar novamente</button><p class="save-status" id="saveStatus" role="status"></p></div></div>
+          </div>
+        </div>
+
+        <div class="mobile-controls"><button class="mobile-btn" id="mobileDuckBtn">↓ <span>Abaixar</span></button><button class="mobile-btn" id="mobileJumpBtn">↑ <span>Pular</span></button></div>
+        <p class="hint"><strong>Dica de piloto</strong> A velocidade aumenta em estágios. Guarde o pulo duplo para as flores altas.</p>
+      </main>
+
+      <aside class="side-panel">
+        <section class="scenario-panel"><div class="panel-header"><div><p class="panel-kicker">AMBIENTE</p><h2>Escolha sua rota</h2></div><span class="panel-count">04</span></div><p class="panel-intro">Cada cenário muda o clima da sua próxima corrida.</p><div class="scenario-grid" id="scenarioPicker"><button class="scenario-card active" type="button" data-scenario="meadow"><span class="scenario-icon">✿</span><span><strong>Prado</strong><small>Flores e colinas</small></span><i>↗</i></button><button class="scenario-card" type="button" data-scenario="beach"><span class="scenario-icon">≋</span><span><strong>Praia</strong><small>Mar e areia</small></span><i>↗</i></button><button class="scenario-card" type="button" data-scenario="forest"><span class="scenario-icon">♠</span><span><strong>Floresta</strong><small>Trilha encantada</small></span><i>↗</i></button><button class="scenario-card" type="button" data-scenario="castle"><span class="scenario-icon">♜</span><span><strong>Castelo</strong><small>Noite estrelada</small></span><i>↗</i></button></div></section>
+        <section class="leaderboard"><div class="leaderboard-title"><div><p class="panel-kicker">HALL DA FAMA</p><h2>Melhores corridas</h2></div><img class="trophy-image" src="{{ url_for('image_file', filename='Sports_Trophy.webp') }}" alt=""></div><ol id="leaderboardList" class="leaderboard-list"><li class="leaderboard-empty">Carregando ranking...</li></ol><button class="btn btn-ghost small" id="refreshBoard">Atualizar ranking <span>↻</span></button></section><section class="profile-panel"><div class="profile-heading"><span class="profile-avatar">ฅ</span><div><p class="panel-kicker">PERFIL SALVO</p><h2 id="playerNameDisplay">Jogador Misterioso</h2></div><span class="level-badge">LV <b id="levelValue">1</b></span></div><div class="xp-track"><span id="xpBar"></span></div><div class="profile-stats"><span><b id="xpValue">0</b> XP</span><span><b id="achievementCount">0</b> conquistas</span></div></section>
+      </aside>
+    </div>
+    <footer class="app-footer"><span>Kitty Runner <b>·</b> uma experiência felina</span><span>Feito para correr com carinho</span></footer>
+  </div>
+  <script type="module" src="{{ url_for('static', filename='js/game.js') }}"></script>
+</body>
+</html>

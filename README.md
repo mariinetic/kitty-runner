@@ -1,6 +1,6 @@
 # Kitty Runner
 
-Um jogo de plataforma em que a Mel corre, pula obstáculos e coleta coracoes.
+Um jogo de plataforma em que a gatinha corre, pula obstáculos e coleta coracoes.
 O projeto combina um frontend em JavaScript puro com uma API Flask e
 persistencia em MongoDB.
 
@@ -35,7 +35,7 @@ O MongoDB Compass e opcional, mas facilita a visualizacao dos documentos.
 Abra o PowerShell na pasta que contem `app.py`:
 
 ```powershell
-cd C:\caminho\para\kitty-runner-mel-nan-fixed\hello-kitty-game
+cd C:\caminho\para\hello-kitty-game
 ```
 
 Crie e ative um ambiente virtual:
@@ -62,7 +62,7 @@ Abra `http://127.0.0.1:5000` no navegador. Para parar o servidor, pressione
 
 ### Usando a pasta raiz do projeto
 
-Se o PowerShell estiver em `kitty-runner-mel-nan-fixed`, execute:
+Se o PowerShell estiver em `hello-kitty-game`, execute:
 
 ```powershell
 python .\hello-kitty-game\app.py
@@ -119,14 +119,14 @@ Em seguida, abra `kitty_runner` e escolha `players`, `runs` ou `scores`.
 Tambem e possivel consultar pelo Python:
 
 ```powershell
-cd C:\caminho\para\kitty-runner-mel-nan-fixed\hello-kitty-game
+cd C:\caminho\para\hello-kitty-game
 python -c "from app import db; print(db.list_collection_names()); print(list(db.players.find({}, {'_id': 0}))); print(list(db.runs.find({}, {'_id': 0}).sort('created_at', -1).limit(10))); print(list(db.scores.find({}, {'_id': 0}).sort('score', -1).limit(10)))"
 ```
 
 ## Como jogar
 
 - **Pular:** `Espaco`, `Seta para cima` ou toque na parte superior da tela.
-- **Pulo duplo:** Mel pode pular duas vezes; soltar a tecla reduz o pulo.
+- **Pulo duplo:** a gatinha pode pular duas vezes; soltar a tecla reduz o pulo.
 - **Abaixar:** `Seta para baixo`, `S` ou toque na parte inferior da tela.
 - **Pausar:** `P`, `Esc` ou o botao de pausa.
 - **Som:** use o botao de audio no HUD.
@@ -160,7 +160,7 @@ hello-kitty-game/
     ├── style.css          # Interface e responsividade
     └── js/
         ├── game.js        # Estado do jogo, HUD e chamadas da API
-        ├── entities.js    # Mel, inimigos e coletaveis
+        ├── entities.js    # gatinha, inimigos e coletaveis
         ├── input.js       # Teclado, toque e controles mobile
         ├── sound.js       # Efeitos sonoros com Web Audio
         ├── particles.js   # Particulas e efeitos de impacto

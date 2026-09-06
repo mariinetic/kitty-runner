@@ -66,6 +66,20 @@ Para executar os testes unitarios:
 pytest -q
 ```
 
+## Deploy gratuito
+
+O arquivo `render.yaml` ja configura o deploy do backend no Render.
+
+1. Crie um cluster gratuito no MongoDB Atlas e copie a connection string.
+2. No Atlas, em **Network Access**, permita o acesso do servidor do Render.
+3. No Render, escolha **New > Blueprint** e conecte o repositorio do GitHub.
+4. Quando solicitado, informe `MONGO_URI` com a connection string do Atlas.
+5. Depois do deploy, abra a URL gerada pelo Render para jogar.
+
+O plano gratuito pode suspender o servidor depois de um periodo sem acessos.
+Nesse caso, a primeira abertura pode levar alguns segundos. Nunca publique a
+connection string diretamente no codigo ou no repositorio.
+
 ## Configuracao do MongoDB
 
 Sem configuracao adicional, o app usa:

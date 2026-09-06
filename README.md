@@ -9,7 +9,7 @@ persistencia em MongoDB.
 - **Frontend:** HTML5 Canvas, CSS e JavaScript modular
 - **Backend:** Python 3 + Flask
 - **Banco:** MongoDB via PyMongo
-- **Dependencias:** Flask e PyMongo, listadas em `requirements.txt`
+- **Dependencias:** Flask, PyMongo, Gunicorn e dnspython, listadas em `requirements.txt`
 - **Execucao:** servidor local em `http://127.0.0.1:5000`
 
 Tudo que aparece no jogo e desenhado no Canvas. Nao ha framework frontend nem
@@ -19,7 +19,7 @@ sao gerados pelo proprio projeto.
 ## Requisitos
 
 - Python 3.9 ou superior
-- MongoDB Community Server ativo localmente ou uma conta MongoDB Atlas
+- MongoDB Community Server local ou uma conta MongoDB Atlas
 - PowerShell, Terminal ou outro shell
 
 O MongoDB local deve aceitar conexoes em:
@@ -68,13 +68,16 @@ pytest -q
 
 ## Deploy gratuito
 
-O arquivo `render.yaml` ja configura o deploy do backend no Render.
+O arquivo `render.yaml` ja configura o deploy como **Web Service** no Render.
 
 1. Crie um cluster gratuito no MongoDB Atlas e copie a connection string.
-2. No Atlas, em **Network Access**, permita o acesso do servidor do Render.
-3. No Render, escolha **New > Blueprint** e conecte o repositorio do GitHub.
-4. Quando solicitado, informe `MONGO_URI` com a connection string do Atlas.
-5. Depois do deploy, abra a URL gerada pelo Render para jogar.
+2. No Atlas, em **Network Access**, adicione `0.0.0.0/0` para permitir o acesso do Render.
+3. No Render, escolha **New > Web Service** e conecte o repositorio do GitHub.
+4. Use `main` como branch e deixe **Root Directory** vazio.
+5. Configure `MONGO_URI` com a connection string do Atlas.
+6. Configure `MONGO_DATABASE` com o valor `kitty`.
+7. Confirme o comando de inicio: `gunicorn app:app --bind 0.0.0.0:$PORT`.
+8. Depois do deploy, abra a URL gerada pelo Render para jogar.
 
 O plano gratuito pode suspender o servidor depois de um periodo sem acessos.
 Nesse caso, a primeira abertura pode levar alguns segundos. Nunca publique a
@@ -88,14 +91,16 @@ Sem configuracao adicional, o app usa:
 mongodb://localhost:27017/
 ```
 
-Para usar o MongoDB Atlas no PowerShell, defina `MONGO_URI` antes de iniciar:
+Para usar o MongoDB Atlas durante a execucao local, defina `MONGO_URI` e `MONGO_DATABASE` antes de iniciar:
 
 ```powershell
-$env:MONGO_URI = "mongodb+srv://usuario:senha@cluster.mongodb.net/"
+$env:MONGO_URI = "mongodb+srv://usuario:senha@cluster.mongodb.net/kitty"
+$env:MONGO_DATABASE = "kitty"
 python app.py
 ```
 
-O banco utilizado pelo app e `kitty_runner`.
+Em producao, o banco utilizado e `kitty`. Sem `MONGO_DATABASE`, o valor padrao
+local e `kitty_runner`.
 
 ## Como os dados sao salvos
 
@@ -120,19 +125,26 @@ Ao terminar uma partida, o backend:
 
 ## Visualizando os documentos
 
-No MongoDB Compass, use esta connection string:
+No MongoDB Compass, use a connection string correspondente ao ambiente.
+Para o Atlas:
 
 ```text
-mongodb://127.0.0.1:27017
+mongodb+srv://usuario:senha@cluster.mongodb.net/kitty
 ```
 
-Em seguida, abra `kitty_runner` e escolha `players`, `runs` ou `scores`.
+Em seguida, abra `kitty` e escolha `players`, `runs` ou `scores`.
 
-Tambem e possivel consultar pelo Python:
+Para MongoDB local, use `mongodb://127.0.0.1:27017` e abra o banco
+`kitty_runner`.
+
+Tambem e possivel consultar o banco local pelo Python:
 
 ```powershell
 python -c "from pymongo import MongoClient; db = MongoClient('mongodb://127.0.0.1:27017/')['kitty_runner']; print(db.list_collection_names()); print(list(db.players.find({}, {'_id': 0}))); print(list(db.runs.find({}, {'_id': 0}).sort('created_at', -1).limit(10))); print(list(db.scores.find({}, {'_id': 0}).sort('score', -1).limit(10)))"
 ```
+
+Para consultar o Atlas, substitua a URI e o nome do banco no comando por
+`MONGO_URI` e `kitty`. Nunca salve a senha diretamente no README.
 
 ## Como jogar
 

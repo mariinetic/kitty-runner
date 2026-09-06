@@ -32,10 +32,10 @@ O MongoDB Compass e opcional, mas facilita a visualizacao dos documentos.
 
 ## Instalacao e execucao
 
-Abra o PowerShell na pasta que contem `app.py`:
+Abra o PowerShell na pasta raiz do projeto:
 
 ```powershell
-cd C:\caminho\para\hello-kitty-game
+cd C:\caminho\para\kitty-runner
 ```
 
 Crie e ative um ambiente virtual:
@@ -60,12 +60,10 @@ python app.py
 Abra `http://127.0.0.1:5000` no navegador. Para parar o servidor, pressione
 `Ctrl+C` no terminal.
 
-### Usando a pasta raiz do projeto
-
-Se o PowerShell estiver em `hello-kitty-game`, execute:
+Para executar os testes unitarios:
 
 ```powershell
-python .\hello-kitty-game\app.py
+pytest -q
 ```
 
 ## Configuracao do MongoDB
@@ -119,8 +117,7 @@ Em seguida, abra `kitty_runner` e escolha `players`, `runs` ou `scores`.
 Tambem e possivel consultar pelo Python:
 
 ```powershell
-cd C:\caminho\para\hello-kitty-game
-python -c "from app import db; print(db.list_collection_names()); print(list(db.players.find({}, {'_id': 0}))); print(list(db.runs.find({}, {'_id': 0}).sort('created_at', -1).limit(10))); print(list(db.scores.find({}, {'_id': 0}).sort('score', -1).limit(10)))"
+python -c "from pymongo import MongoClient; db = MongoClient('mongodb://127.0.0.1:27017/')['kitty_runner']; print(db.list_collection_names()); print(list(db.players.find({}, {'_id': 0}))); print(list(db.runs.find({}, {'_id': 0}).sort('created_at', -1).limit(10))); print(list(db.scores.find({}, {'_id': 0}).sort('score', -1).limit(10)))"
 ```
 
 ## Como jogar
@@ -151,18 +148,25 @@ apenas em ambiente local ou de demonstracao.
 ## Estrutura
 
 ```text
-hello-kitty-game/
-├── app.py                 # API Flask e persistencia MongoDB
+kitty-runner/
+├── app.py                 # Ponto de entrada do servidor
 ├── requirements.txt       # Dependencias Python
 ├── README.md              # Documentacao
-├── templates/index.html   # Estrutura da pagina
-└── static/
-    ├── style.css          # Interface e responsividade
-    └── js/
-        ├── game.js        # Estado do jogo, HUD e chamadas da API
-        ├── entities.js    # gatinha, inimigos e coletaveis
-        ├── input.js       # Teclado, toque e controles mobile
-        ├── sound.js       # Efeitos sonoros com Web Audio
-        ├── particles.js   # Particulas e efeitos de impacto
-        └── background.js   # Cenarios e paralaxe
+├── backend/
+│   ├── api/               # Rotas HTTP e adaptadores Flask
+│   ├── application/       # Casos de uso e regras do jogo
+│   ├── core/              # Configuracao e modelos de dominio
+│   └── infrastructure/    # Persistencia MongoDB
+├── frontend/
+│   ├── templates/         # Estrutura HTML da pagina
+│   ├── static/            # CSS e JavaScript do jogo
+│   └── assets/Images/     # Imagens e recursos visuais
+└── tests/                 # Testes unitarios do backend
 ```
+
+## Arquitetura
+
+O backend usa uma Application Factory (`create_app`), Service Layer (`GameService`)
+e Repository Pattern (`MongoRepository`). Essa separacao permite testar as regras
+do jogo sem iniciar o Flask ou conectar ao MongoDB. O frontend permanece em
+JavaScript puro e continua consumindo as mesmas rotas HTTP.

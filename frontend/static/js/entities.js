@@ -22,7 +22,7 @@ const KITTY_SPRITE = new Image();
 KITTY_SPRITE.src = "/Images/1553283_powpink_hello-kitty-walk.gif";
 
 export class Cat {
-  constructor(x, groundY) {
+  constructor(x, groundY, options = {}) {
     this.x = x;
     this.groundY = groundY;
     this.standHeight = 74;
@@ -41,6 +41,11 @@ export class Cat {
     this.blinkTimer = 90 + Math.random() * 120;
     this.blinking = false;
     this.trail = []; // rastro de movimento durante o pulo
+    this.witchSkin = Boolean(options.witchSkin);
+  }
+
+  setWitchSkin(enabled) {
+    this.witchSkin = Boolean(enabled);
   }
 
   get height() {
@@ -245,6 +250,10 @@ export class Cat {
     const cx = w * 0.42;
     const cy = duck ? h * 0.38 : h * 0.24;
     const r = w * (duck ? 0.34 : 0.4);
+
+    if (this.witchSkin) {
+      this._drawWitchHat(ctx, cx, cy, r);
+    }
 
     // orelha esquerda (arrebitada)
     drawEar(ctx, cx - r * 0.55, cy - r * 0.7, -1, false);
@@ -673,20 +682,53 @@ export class PinkWispEnemy {
 
 export class PhaseBoss {
   constructor(startX, groundY, phase) {
-    this.x = startX; this.groundY = groundY; this.phase = phase; this.w = 86; this.h = 82;
-    this.y = groundY; this.time = 0; this.kind = "boss"; this.alerted = false;
+    this.x = startX;
+    this.groundY = groundY;
+    this.phase = phase;
+    this.w = 94 + phase * 8;
+    this.h = 90 + phase * 9;
+    this.y = groundY;
+    this.time = 0;
+    this.kind = "boss";
+    this.alerted = false;
   }
-  update(dt, speed) { this.x -= Math.max(2.8, speed * 0.68) * dt; this.time += dt; }
+
+  update(dt, speed) {
+    const difficultyBoost = 1 + this.phase * 0.24;
+    this.x -= (Math.max(4.2, speed * 0.82) + difficultyBoost * 1.4) * dt;
+    this.y = this.groundY - Math.sin(this.time * 0.22) * (8 + this.phase * 2.4);
+    this.time += dt;
+  }
+
   isOffscreen() { return this.x + this.w < -30; }
-  getHitbox() { return { x:this.x + 12, y:this.y - this.h + 12, w:this.w - 24, h:this.h - 12 }; }
+
+  getHitbox() {
+    return {
+      x: this.x + 12,
+      y: this.y - this.h + 16,
+      w: this.w - 24,
+      h: this.h - 18,
+    };
+  }
+
   draw(ctx) {
-    const cx = this.x + this.w / 2, cy = this.y - this.h / 2 + Math.sin(this.time * 0.12) * 5;
-    ctx.save(); ctx.shadowColor = "#ff4caa"; ctx.shadowBlur = 18;
-    ctx.fillStyle = "#8b2f68"; ctx.fillRect(cx - 32, cy - 28, 64, 54);
-    ctx.fillStyle = "#ef5a9e"; ctx.fillRect(cx - 25, cy - 35, 50, 52); ctx.fillRect(cx - 39, cy - 20, 14, 27); ctx.fillRect(cx + 25, cy - 20, 14, 27);
-    ctx.fillStyle = "#ffc5dc"; ctx.fillRect(cx - 17, cy - 19, 10, 10); ctx.fillRect(cx + 7, cy - 19, 10, 10);
-    ctx.fillStyle = "#6b2050"; ctx.fillRect(cx - 15, cy - 16, 5, 5); ctx.fillRect(cx + 10, cy - 16, 5, 5); ctx.fillRect(cx - 17, cy + 4, 34, 5);
-    ctx.fillStyle = "#ffd9e9"; ctx.fillRect(cx - 5, cy - 48, 10, 13); ctx.fillRect(cx - 13, cy - 43, 26, 5);
+    const cx = this.x + this.w / 2;
+    const cy = this.y - this.h / 2 + Math.sin(this.time * 0.12) * 5;
+    ctx.save();
+    ctx.shadowColor = "#ff4caa";
+    ctx.shadowBlur = 18 + this.phase * 4;
+    ctx.fillStyle = "#8b2f68";
+    ctx.fillRect(cx - 34, cy - 32, 68, 58);
+    ctx.fillStyle = "#ef5a9e";
+    ctx.fillRect(cx - 30, cy - 42, 60, 58);
+    ctx.fillRect(cx - 48, cy - 22, 16, 30); ctx.fillRect(cx + 32, cy - 22, 16, 30);
+    ctx.fillStyle = "#ffc5dc";
+    ctx.fillRect(cx - 20, cy - 18, 12, 12); ctx.fillRect(cx + 8, cy - 18, 12, 12);
+    ctx.fillStyle = "#6b2050";
+    ctx.fillRect(cx - 18, cy - 12, 6, 6); ctx.fillRect(cx + 12, cy - 12, 6, 6);
+    ctx.fillRect(cx - 18, cy + 6, 36, 6);
+    ctx.fillStyle = "#ffd9e9";
+    ctx.fillRect(cx - 7, cy - 52, 14, 14); ctx.fillRect(cx - 16, cy - 44, 32, 7);
     ctx.restore();
   }
 }

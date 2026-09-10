@@ -37,9 +37,50 @@ class MongoRepository:
         return profile
 
     def leaderboard(self) -> list[dict[str, Any]]:
-        return list(self.scores.find({}, {"_id": 0}).sort("score", DESCENDING).limit(10))
+        pipeline = [
+            {"$sort": {"score": DESCENDING, "date": DESCENDING}},
+            {"$group": {
+                "_id": "$player_id",
+                "player_id": {"$first": "$player_id"},
+                "name": {"$first": "$name"},
+                "score": {"$first": "$score"},
+                "date": {"$first": "$date"},
+            }},
+            {"$sort": {"score": DESCENDING, "date": DESCENDING}},
+            {"$limit": 10},
+            {"$project": {"_id": 0, "player_id": 1, "name": 1, "score": 1, "date": 1}},
+        ]
+        return list(self.scores.aggregate(pipeline))
 
     def save_score(self, entry: dict[str, Any]) -> int:
+        player_id = entry.get("player_id")
+        if player_id is not None:
+            existing = list(self.scores.find({"player_id": player_id}, {"_id": 1, "score": 1, "name": 1}))
+            if existing:
+                best_score = max(int(item.get("score", 0)) for item in existing)
+                candidate_score = int(entry.get("score", best_score))
+                if candidate_score <= best_score:
+                    if entry.get("name"):
+                        self.scores.update_many({"player_id": player_id}, {"$set": {"name": entry["name"]}})
+                    return self.scores.count_documents({"score": {"$gt": best_score}}) + 1
+
+                self.scores.delete_many({"player_id": player_id})
+                self.scores.insert_one({**entry, "score": candidate_score, "date": entry.get("date") or now_iso()})
+                return self.scores.count_documents({"score": {"$gt": candidate_score}}) + 1
+
+        name = entry.get("name")
+        if name:
+            existing = self.scores.find_one({"name": name})
+            if existing:
+                current_score = int(existing.get("score", 0))
+                candidate_score = int(entry.get("score", current_score))
+                if candidate_score <= current_score:
+                    self.scores.update_one({"name": name}, {"$set": {"name": name}})
+                    return self.scores.count_documents({"score": {"$gt": current_score}}) + 1
+                self.scores.delete_many({"name": name})
+                self.scores.insert_one({**entry, "score": candidate_score, "date": entry.get("date") or now_iso()})
+                return self.scores.count_documents({"score": {"$gt": candidate_score}}) + 1
+
         self.scores.insert_one(entry)
         return self.scores.count_documents({"score": {"$gt": entry["score"]}}) + 1
 

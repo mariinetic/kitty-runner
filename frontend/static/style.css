@@ -73,6 +73,32 @@ kbd { padding:3px 6px; border:1px solid #e1d9e1; border-bottom-width:2px; border
 #playerName::placeholder { color:#aea5b1; }
 .save-status { min-height:17px; margin:10px 0 0!important; color:var(--pink-dark)!important; font-size:.75rem!important; }
 .mascot-badge { display:grid; place-items:center; width:57px; height:57px; margin:0 auto 12px; border-radius:18px; color:#fff; background:var(--pink); font-size:1.5rem; font-weight:700; }
+.victory-emblem {
+  width:72px; height:72px; margin:0 auto 12px; display:grid; place-items:center;
+  border:3px solid #7d285d; border-radius:3px; box-shadow:3px 3px 0 #9a2d67;
+  background:linear-gradient(135deg,#ffe58a 0%,#ffdb6e 18%,#ff8ec7 30%,#73d6ff 50%,#8ef0a9 68%,#ffe58a 100%);
+  color:#fff; font-size:2rem; font-weight:700; clip-path: polygon(50% 0%, 61% 35%, 100% 35%, 68% 58%, 80% 100%, 50% 75%, 20% 100%, 32% 58%, 0% 35%, 39% 35%);
+  filter:drop-shadow(0 6px 0 rgba(125,40,93,.38)); text-shadow:0 3px 0 rgba(125,40,93,.35);
+}
+
+.overlay-card.celebrating .victory-emblem {
+  animation: victory-shimmer 0.9s ease-in-out infinite alternate;
+}
+
+.overlay-card.witch-reveal .victory-emblem {
+  animation: star-sparkle 1s ease-in-out infinite alternate;
+}
+
+@keyframes victory-shimmer {
+  0% { transform: scale(1) rotate(-8deg); filter: drop-shadow(0 6px 0 rgba(125,40,93,.38)); }
+  50% { transform: scale(1.12) rotate(6deg); filter: drop-shadow(0 10px 18px rgba(255,103,167,.7)); }
+  100% { transform: scale(1.06) rotate(-5deg); filter: drop-shadow(0 12px 20px rgba(115,214,255,.65)); }
+}
+
+@keyframes star-sparkle {
+  0% { transform: scale(1) rotate(0deg); }
+  100% { transform: scale(1.18) rotate(10deg); }
+}
 .countdown-number { color:#fff; font:700 6rem 'Space Grotesk',sans-serif; text-shadow:0 5px 0 rgba(40,34,55,.3); animation:card-in .25s var(--ease); }
 .mobile-controls { display:none; gap:10px; margin-top:12px; }
 .mobile-btn { flex:1; padding:12px; border:1px solid var(--line); border-radius:10px; color:var(--ink); background:#fff; font-weight:700; }

@@ -27,8 +27,11 @@ class GameService:
                 profile[key] = data[key]
         return self.repository.save_profile(profile)
 
-    def submit_score(self, name: str, score: int) -> int:
-        return self.repository.save_score({"name": name[:20] or "Jogador Misterioso", "score": score, "date": now_iso()})
+    def submit_score(self, name: str, score: int, player_id: str | None = None) -> int:
+        entry = {"name": name[:20] or "Jogador Misterioso", "score": score, "date": now_iso()}
+        if player_id is not None:
+            entry["player_id"] = str(player_id)[:80]
+        return self.repository.save_score(entry)
 
     def save_run(self, data: dict[str, Any]) -> tuple[dict[str, Any], int]:
         player_id = str(data.get("player_id") or "guest")[:80]

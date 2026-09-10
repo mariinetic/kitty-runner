@@ -52,7 +52,11 @@ def register_routes(app: Flask, service) -> None:
             return save_run()
         try:
             score = service.validate_score(data.get("score"))
-            rank = service.submit_score(str(data.get("name") or "Jogador Misterioso").strip(), score)
+            rank = service.submit_score(
+                str(data.get("name") or "Jogador Misterioso").strip(),
+                score,
+                data.get("player_id"),
+            )
             return jsonify({"message": "Pontuação salva!", "rank": rank}), 201
         except ValueError as exc:
             return jsonify({"error": str(exc)}), 400

@@ -24,10 +24,14 @@ const GROUND_VARIANTS = [
 const BEST_KEY = "kittyRunnerBest";
 const NAME_KEY = "kittyRunnerName";
 const PLAYER_ID_KEY = "kittyRunnerPlayerId";
+const WINNER_REWARD_KEY = "kittyRunnerWinnerReward";
+const WITCH_SKIN_KEY = "kittyRunnerWitchSkin";
 const playerId = localStorage.getItem(PLAYER_ID_KEY) || (crypto.randomUUID ? crypto.randomUUID() : `player-${Date.now()}-${Math.random().toString(16).slice(2)}`);
 localStorage.setItem(PLAYER_ID_KEY, playerId);
 const MUTE_KEY = "kittyRunnerMuted";
 const SCENARIO_KEY = "kittyRunnerScenario";
+const hasWinnerReward = localStorage.getItem(WINNER_REWARD_KEY) === "1";
+const hasWitchSkin = localStorage.getItem(WITCH_SKIN_KEY) === "1";
 
 // --- Elementos do DOM ------------------------------------------------------------
 
@@ -83,6 +87,22 @@ const PHASES = [
   { name: "FINAL FELINO", threshold: 3000, color: "#ff4caa" },
 ];
 const POWERUP_NAMES = { shield: "ESCUDO", magnet: "IMA", turbo: "TURBO" };
+const PHASE_SCENARIOS = ["meadow", "beach", "forest", "castle", "meadow", "beach"];
+
+function getPhaseScenario(phaseIndexValue = phaseIndex) {
+  const safeIndex = Math.max(0, Math.min(PHASES.length - 1, Number(phaseIndexValue) || 0));
+  return PHASE_SCENARIOS[safeIndex] || "meadow";
+}
+
+function applyPhaseScenario(phaseIndexValue = phaseIndex) {
+  const scenarioKey = getPhaseScenario(phaseIndexValue);
+  localStorage.setItem(SCENARIO_KEY, scenarioKey);
+  background.setBiome(scenarioKey);
+  const activeCard = scenarioPicker.querySelector(`[data-scenario="${scenarioKey}"]`);
+  scenarioPicker.querySelectorAll("[data-scenario]").forEach((button) => {
+    button.classList.toggle("active", button === activeCard);
+  });
+}
 
 // --- DPI / canvas nítido ----------------------------------------------------------
 
@@ -111,7 +131,7 @@ updateMuteButton();
 let state = "idle"; // idle | countdown | running | paused | gameover | phasecomplete
 let gameMode = "campaign";
 let phaseRunTicks = 0;
-const PHASE_DURATION_TICKS = 36000; // cerca de 10 minutos por fase a 60 FPS
+const PHASE_DURATION_TICKS = 2200; // tempo normal por fase
 let lastTime = 0;
 let score = 0;
 let best = Number(localStorage.getItem(BEST_KEY) || 0);
@@ -123,7 +143,7 @@ let countdownValue = 3;
 let countdownAccum = 0;
 let stateBeforePause = "running";
 
-let cat = new Cat(90, GROUND_Y);
+let cat = new Cat(90, GROUND_Y, { witchSkin: hasWitchSkin });
 let obstacles = [];
 let hearts = [];
 let powerups = [];
@@ -174,8 +194,9 @@ function resetGame() {
   shakeTime = 0;
   shakeMag = 0;
   hitStopFrames = 0;
-  background.setBiome(localStorage.getItem(SCENARIO_KEY) || "meadow");
-  cat = new Cat(90, GROUND_Y);
+  const phaseScenario = getPhaseScenario(phaseIndex);
+  background.setBiome(phaseScenario);
+  cat = new Cat(90, GROUND_Y, { witchSkin: hasWitchSkin || localStorage.getItem(WITCH_SKIN_KEY) === "1" });
   updateHud();
   updatePhaseHud();
   updatePowerupHud();
@@ -210,6 +231,7 @@ function updatePhaseHud() {
   stageBadgeEl.textContent = `FASE ${String(phaseIndex + 1).padStart(2, "0")} · ${phase.name}`;
   stageBadgeEl.style.setProperty("--phase-color", phase.color);
   phaseProgressBarEl.style.setProperty("--phase-color", phase.color);
+  applyPhaseScenario(phaseIndex);
 }
 
 function updatePowerupHud() {
@@ -267,12 +289,34 @@ async function persistProgress() {
   } catch (err) { /* mantém o progresso local quando o banco estiver offline */ }
 }
 
+function unlockWinnerReward() {
+  const overlayCard = phaseCompleteOverlay.querySelector(".overlay-card");
+  overlayCard.classList.remove("celebrating");
+  void overlayCard.offsetWidth;
+  overlayCard.classList.add("celebrating");
+  phaseCompleteOverlay.querySelector("p").textContent = "★ Troféu da estrela conquistado! Skin de bruxa da Hello Kitty liberada.";
+
+  setTimeout(() => {
+    localStorage.setItem(WINNER_REWARD_KEY, "1");
+    localStorage.setItem(WITCH_SKIN_KEY, "1");
+    if (cat) cat.setWitchSkin(true);
+    particles.burstHearts(LOGICAL_W / 2, LOGICAL_H * 0.28);
+    overlayCard.classList.add("witch-reveal");
+  }, 420);
+}
+
 function completePhase() {
   state = "phasecomplete";
   sound.stopMusic();
   phaseCompleteScoreEl.textContent = Math.floor(score);
-  phaseCompleteTitleEl.textContent = phaseIndex >= PHASES.length - 1 ? "Campanha concluída!" : `Fase ${String(phaseIndex + 1).padStart(2, "0")} concluída!`;
-  nextPhaseBtn.classList.toggle("hidden", phaseIndex >= PHASES.length - 1);
+  const isFinalVictory = phaseIndex >= PHASES.length - 1;
+  phaseCompleteTitleEl.textContent = isFinalVictory ? "Campanha concluída! Você venceu!" : `Fase ${String(phaseIndex + 1).padStart(2, "0")} concluída!`;
+  if (isFinalVictory) {
+    unlockWinnerReward();
+  } else {
+    phaseCompleteOverlay.querySelector("p").textContent = "Você superou o desafio e derrotou o chefe.";
+  }
+  nextPhaseBtn.classList.toggle("hidden", isFinalVictory);
   hideAllOverlays();
   phaseCompleteOverlay.classList.remove("hidden");
   persistProgress();
@@ -515,9 +559,13 @@ function update(dt) {
     if (!h.collected && Math.hypot(dx, dy) < h.r + 20) {
       h.collected = true;
       runHearts += 1;
+      if (lives < TOTAL_LIVES) {
+        lives += 1;
+      }
       score += 15;
       sound.collect();
       particles.burstHearts(c.x, c.y);
+      updateHud();
     }
   }
 }

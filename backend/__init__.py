@@ -1,5 +1,8 @@
 """Application package for Kitty Runner."""
+import os
+
 from flask import Flask
+from flask_cors import CORS
 
 from .api.routes import register_routes
 from .application.services import GameService
@@ -11,6 +14,8 @@ def create_app(settings: Settings | None = None, repository=None) -> Flask:
     settings = settings or Settings.from_environment()
     app = Flask(__name__, template_folder="../frontend/templates", static_folder="../frontend/static")
     app.config.update(DEBUG=settings.debug, PORT=settings.port)
+    allowed_origins = os.getenv("CORS_ORIGINS", "https://mariinetic.github.io").split(",")
+    CORS(app, resources={r"/api/*": {"origins": [o.strip() for o in allowed_origins]}})
     service = GameService(repository or MongoRepository(settings))
     app.extensions["backend_service"] = service
     register_routes(app, service)

@@ -2,6 +2,7 @@ import { InputManager } from "./input.js";
 import { SoundManager } from "./sound.js";
 import { ParticleSystem } from "./particles.js";
 import { Background } from "./background.js";
+import { API_BASE } from "./config.js";
 import { Cat, GroundObstacle, AerialObstacle, HeartPickup, PowerUp, PinkSlimeEnemy, PinkWispEnemy, PhaseBoss, rectsOverlap } from "./entities.js";
 
 // --- Configuração base ---------------------------------------------------------
@@ -281,7 +282,7 @@ function startRunning() {
 
 async function persistProgress() {
   try {
-    await fetch(`/api/profile/${encodeURIComponent(playerId)}`, {
+    await fetch(`${API_BASE}/api/profile/${encodeURIComponent(playerId)}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ unlocked_phases: Array.from({ length: Math.min(PHASES.length, phaseIndex + 2) }, (_, i) => i + 1), phase_records: { [String(phaseIndex + 1)]: Math.floor(score) } }),
@@ -649,7 +650,7 @@ function drawVignette() {
 
 async function loadProfile() {
   try {
-    const res = await fetch(`/api/profile/${encodeURIComponent(playerId)}`);
+    const res = await fetch(`${API_BASE}/api/profile/${encodeURIComponent(playerId)}`);
     if (!res.ok) return;
     const profile = await res.json();
     if (profile.name && profile.name !== "Jogador Misterioso") playerNameInput.value = profile.name;
@@ -666,7 +667,7 @@ async function loadProfile() {
 async function loadLeaderboard() {
   leaderboardList.innerHTML = '<li class="leaderboard-empty">Carregando...</li>';
   try {
-    const res = await fetch("/api/leaderboard");
+    const res = await fetch(`${API_BASE}/api/leaderboard`);
     const data = await res.json();
     if (!Array.isArray(data) || data.length === 0) {
       leaderboardList.innerHTML =
@@ -695,7 +696,7 @@ function escapeHtml(str) {
 async function submitScore(name, finalScoreValue) {
   saveStatus.textContent = "Salvando...";
   try {
-    const res = await fetch("/api/score", {
+    const res = await fetch(`${API_BASE}/api/score`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, score: finalScoreValue, player_id: playerId, phase: phaseIndex + 1, distance: Math.floor(elapsedTicks), hearts: runHearts, powerups: runPowerups, enemies: runEnemies, bosses: runBosses }),

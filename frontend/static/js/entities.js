@@ -19,7 +19,7 @@ const SCARF_MAIN = "#FF7A45";
 const SCARF_DARK = "#E85C2B";
 const EYE_COLOR = "#3A2A34";
 const KITTY_SPRITE = new Image();
-KITTY_SPRITE.src = "/Images/1553283_powpink_hello-kitty-walk.gif";
+KITTY_SPRITE.src = new URL("../../Images/1553283_powpink_hello-kitty-walk.gif", import.meta.url).href;
 
 export class Cat {
   constructor(x, groundY, options = {}) {
